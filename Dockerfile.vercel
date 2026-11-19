@@ -1,0 +1,14 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app.py image_catalog.py translations.py ./
+COPY archive/counterfeit_products.csv ./archive/counterfeit_products.csv
+COPY fashion-dataset/styles.csv ./fashion-dataset/styles.csv
+COPY fashion-dataset/images/ ./fashion-dataset/images/
+
+CMD ["sh", "-c", "exec streamlit run app.py --server.address=0.0.0.0 --server.port=${PORT:-80} --server.headless=true --browser.gatherUsageStats=false"]
