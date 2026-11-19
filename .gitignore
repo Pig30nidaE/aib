@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.streamlit/secrets.toml
+review_log*.csv
+
+# Keep only the selected catalog metadata and JPG files in the main image folder.
+fashion-dataset/*
+!fashion-dataset/styles.csv
+!fashion-dataset/images/
+fashion-dataset/images/*
+!fashion-dataset/images/*.jpg
+archive (2)/
+archive/_counterfeit_transactions.csv
+data/*.csv

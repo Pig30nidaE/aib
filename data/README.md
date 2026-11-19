@@ -1,0 +1,1 @@
+Place the downloaded Kaggle product listings CSV here as `counterfeit_products.csv`, or upload it through the app. The app also detects the existing `archive/counterfeit_products.csv`. The transaction CSV is not used.
