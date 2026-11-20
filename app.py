@@ -41,6 +41,21 @@ def sync_sort():
     st.session_state.sort_choice = st.session_state[f"queue_sort_{st.session_state.language}"]
 
 
+def search_cases_changed():
+    st.session_state.case_query = st.session_state.case_search
+    st.session_state.queue_page = 1
+
+
+def reset_queue_filters():
+    for name, value in [("priority_filter", "All priorities"), ("category_filter", "All categories"), ("status_filter", "All statuses")]:
+        st.session_state[name] = value
+        for language in ("en", "ko"):
+            st.session_state[f"{name}_{language}"] = value
+    st.session_state.case_search = ""
+    st.session_state.case_query = ""
+    st.session_state.queue_page = 1
+
+
 def localized_select(name, title, options, page_key=None):
     language = st.session_state.language
     selected = st.session_state.get(name, options[0])
@@ -183,20 +198,48 @@ def score_text(value):
 
 
 st.markdown("""<style>
-.stApp {background:#F9F8F6;color:#172331;font-family:Arial,sans-serif}
-.block-container {max-width:1500px;padding-top:1.2rem;padding-bottom:3rem}
+:root {--ink:#192d46;--muted:#52647b;--line:#d8e1ec;--accent:#234f96;--paper:#fff}
+.stApp {background:#f3f6fa;color:var(--ink)}
+.stApp, .stApp input, .stApp button, .stApp select {font-family:"Avenir Next","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+.block-container {max-width:1540px;padding:4rem 2.5rem 3rem}
 div[data-testid="stVerticalBlock"] {gap:.65rem}
-h1,h2,h3 {color:#172331} h1 {font-family:Georgia,serif;letter-spacing:-.035em;font-size:2rem !important}
-.eyebrow {color:#EB4823;font-size:.72rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase}
-.subtle {color:#65707a;font-size:.88rem} .disclaimer {border-left:3px solid #EB4823;background:#EFECE6;padding:8px 12px;color:#172331;font-size:.8rem;margin:.3rem 0 .5rem}
-.reference-placeholder {background:#EFECE6;border:1px solid #e2ded7;border-radius:6px;min-height:260px;display:flex;align-items:center;justify-content:center;color:#6b7479;text-align:center;padding:20px}
-.thumb-placeholder {background:#EFECE6;border-radius:5px;height:62px;display:flex;align-items:center;justify-content:center;color:#80898c;font-size:.7rem;text-align:center}
-.case-summary {background:#EFECE6;border-left:3px solid #EB4823;padding:12px 15px;border-radius:3px}
-.big-score {font-size:2rem;font-weight:700;letter-spacing:-.04em;color:#172331;line-height:1.15}
-.ref-label {color:#6c757b;font-size:.76rem;line-height:1.35;margin:.35rem 0}
-div.stButton > button[kind="primary"] {background:#EB4823;border-color:#EB4823;color:white}
-div.stButton > button, div.stDownloadButton > button {border-radius:5px}
-hr {border-color:#dedbd5}
+h1,h2,h3 {color:var(--ink);text-wrap:balance;scroll-margin-top:4rem}
+h1 {font-size:1.85rem !important;font-weight:650 !important;letter-spacing:-.045em;padding-top:0 !important}
+h2,h3 {letter-spacing:-.025em}
+h3 {font-size:1.2rem !important}
+.eyebrow {color:var(--muted);font-size:.78rem;font-weight:600}
+.subtle {color:var(--muted);font-size:.88rem}
+.disclaimer {border:1px solid var(--line);background:var(--paper);padding:10px 14px;color:var(--muted);font-size:.82rem;border-radius:8px;margin:.4rem 0}
+.reference-placeholder {background:#eaf0f7;border:1px dashed #b1bfd0;border-radius:8px;min-height:220px;display:flex;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:20px}
+.case-summary {display:flex;align-items:center;justify-content:space-between;gap:20px;background:#e9eff8;border:1px solid #c8d7ed;border-radius:8px;padding:16px 20px;margin:.25rem 0}
+.recommendation {font-size:1.25rem;font-weight:650;color:var(--ink);line-height:1.4}
+.score-detail {text-align:right;flex-shrink:0}
+.screening-score {font-size:1.1rem;font-weight:600;font-variant-numeric:tabular-nums}
+.ref-label {color:var(--muted);font-size:.76rem;line-height:1.5;margin:.35rem 0}
+div.stButton > button, div.stDownloadButton > button {border-radius:7px;min-height:2.65rem;white-space:normal;touch-action:manipulation}
+div.stButton > button p {white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+div.stButton > button[kind="primary"] {background:var(--accent);border-color:var(--accent);color:white}
+div.stButton > button[kind="primary"]:hover {background:#193d77;border-color:#193d77}
+button:focus-visible,a:focus-visible,input:focus-visible,[role="combobox"]:focus-visible {outline:3px solid #2369c8 !important;outline-offset:3px}
+.st-key-case_list {background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px}
+.st-key-case_list div.stButton > button {justify-content:flex-start;text-align:left}
+.st-key-case_list div.stButton > button p {white-space:normal;overflow-wrap:anywhere;font-size:.87rem}
+.st-key-case_list [data-testid="stCaptionContainer"] {font-size:.76rem;line-height:1.45}
+.st-key-case_reference [data-testid="stImage"] img {max-height:245px;object-fit:contain}
+.st-key-decision_panel {background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:18px}
+.st-key-queue_toolbar {padding:.6rem 0;border-top:1px solid var(--line)}
+[data-testid="stSidebar"] {background:#eaf0f7;border-right:1px solid var(--line)}
+[data-testid="stCaptionContainer"] {color:var(--muted)}
+hr {border-color:var(--line)}
+@media (max-width:760px) {
+  .block-container {padding:4rem 1rem 2rem}
+  h1 {font-size:1.5rem !important}
+  .st-key-case_list {max-height:330px}
+  .st-key-catalog_gallery {max-height:520px}
+  .case-summary {padding:12px;gap:12px;flex-wrap:wrap}
+  .score-detail {text-align:left}
+  .st-key-decision_panel {padding:12px}
+}
 </style>""", unsafe_allow_html=True)
 header, language_control = st.columns([5, 1])
 with language_control:
@@ -279,7 +322,7 @@ catalog, catalog_stats = build_verified_catalog(str(catalog_dir / "styles.csv"),
 if len(catalog) < 100:
     st.warning(t("The high-resolution catalog is unavailable or has fewer than 100 verified products."))
 
-nav1, nav2, _ = st.columns([1, 1, 3])
+nav1, nav2, workspace_note = st.columns([1.25, 1.25, 2.5], vertical_alignment="center")
 if "screen" not in st.session_state:
     st.session_state.screen = "queue"
 if nav1.button(t("Investigation queue"), key="nav_queue", type="primary" if st.session_state.screen == "queue" else "secondary", width='stretch'):
@@ -288,6 +331,8 @@ if nav1.button(t("Investigation queue"), key="nav_queue", type="primary" if st.s
 if nav2.button(t("Product catalog"), key="nav_catalog", type="primary" if st.session_state.screen == "catalog" else "secondary", width='stretch'):
     st.session_state.screen = "catalog"
     st.rerun()
+with workspace_note:
+    st.caption(t("{count} cases reviewed in this session", count=len(st.session_state.decisions)))
 
 if st.session_state.screen == "catalog":
     st.subheader(t("Separate fashion catalog"))
@@ -322,7 +367,7 @@ if st.session_state.screen == "catalog":
     if not len(filtered):
         st.info(t("No products match these filters."))
     gallery, detail = st.columns([2.2, 1], gap="large")
-    with gallery:
+    with gallery, st.container(height=780, border=False, key="catalog_gallery"):
         for offset in range(0, len(page_items), 4):
             columns = st.columns(4, gap="small")
             for col, (_, product) in zip(columns, page_items.iloc[offset:offset + 4].iterrows()):
@@ -358,24 +403,37 @@ if st.session_state.screen == "catalog":
             st.write(f"{t('Article type')}: {product['articleType']} · {t('Color')}: {product['baseColour']} · {t('Gender')}: {product['gender']}")
     st.stop()
 
-st.caption(t("Browseable investigation cases: {count}", count=len(cases)))
-filters = st.columns(4)
-with filters[0]:
-    priority_filter = localized_select("priority_filter", "Filter priority", ["All priorities", "Investigate", "Insufficient information", "Lower review priority"], "queue_page")
-with filters[1]:
-    if "category_filter" not in st.session_state and "category" in cases and "fashion" in cases["category"].values:
-        st.session_state.category_filter = "fashion"
-    category_filter = localized_select("category_filter", "Filter category", ["All categories"] + sorted(cases["category"].dropna().astype(str).unique().tolist()) if "category" in cases else ["All categories"], "queue_page")
-with filters[2]:
-    status_filter = localized_select("status_filter", "Filter review status", ["All statuses", "Not reviewed", "Investigate", "Information requested", "Dismissed"], "queue_page")
-with filters[3]:
-    sort_options = ["Screening score: high to low", "Screening score: low to high", "Review status"]
-    language = st.session_state.language
-    sort = st.selectbox(t("Sort queue"), sort_options, index=sort_options.index(st.session_state.get("sort_choice", sort_options[0])), format_func=lambda option: translate(language, option), key=f"queue_sort_{language}", on_change=sync_sort)
+st.subheader(t("Listing queue"))
+st.caption(t("Select a case to inspect the record. Scores are for review prioritization."))
+with st.container(key="queue_toolbar"):
+    search_column, count_column = st.columns([2, 1], vertical_alignment="bottom")
+    with search_column:
+        if "case_search" not in st.session_state:
+            st.session_state.case_search = st.session_state.get("case_query", "")
+        search = st.text_input(t("Search cases"), key="case_search", placeholder=t("Case ID, brand or seller"), on_change=search_cases_changed)
+    with count_column:
+        st.caption(t("Browseable investigation cases: {count}", count=len(cases)))
+    filters = st.columns(4)
+    with filters[0]:
+        priority_filter = localized_select("priority_filter", "Filter priority", ["All priorities", "Investigate", "Insufficient information", "Lower review priority"], "queue_page")
+    with filters[1]:
+        if "category_filter" not in st.session_state and "category" in cases and "fashion" in cases["category"].values:
+            st.session_state.category_filter = "fashion"
+        category_filter = localized_select("category_filter", "Filter category", ["All categories"] + sorted(cases["category"].dropna().astype(str).unique().tolist()) if "category" in cases else ["All categories"], "queue_page")
+    with filters[2]:
+        status_filter = localized_select("status_filter", "Filter review status", ["All statuses", "Not reviewed", "Investigate", "Information requested", "Dismissed"], "queue_page")
+    with filters[3]:
+        sort_options = ["Screening score: high to low", "Screening score: low to high", "Review status"]
+        language = st.session_state.language
+        sort = st.selectbox(t("Sort queue"), sort_options, index=sort_options.index(st.session_state.get("sort_choice", sort_options[0])), format_func=lambda option: translate(language, option), key=f"queue_sort_{language}", on_change=sync_sort)
 
 queue = cases.copy()
 queue["status"] = queue["case_id"].map(lambda x: st.session_state.decisions.get(x, "Not reviewed"))
 queue["priority"] = queue.apply(lambda item: recommended(item, indicators(item)[1]), axis=1)
+if search.strip():
+    fields = [field for field in ["case_id", "brand", "seller_id"] if field in queue]
+    searchable = queue[fields].fillna("").astype(str).agg(" ".join, axis=1)
+    queue = queue[searchable.str.contains(search.strip(), case=False, regex=False)]
 if priority_filter != "All priorities":
     queue = queue[queue["priority"] == priority_filter]
 if category_filter != "All categories":
@@ -383,35 +441,32 @@ if category_filter != "All categories":
 if status_filter != "All statuses":
     queue = queue[queue["status"] == status_filter]
 queue = queue.sort_values("status" if sort == "Review status" else "score", ascending=sort != "Screening score: high to low", kind="stable")
-page = page_for("queue_page", len(queue), 20)
+pagination, result_count, reset = st.columns([1, 2, 1], vertical_alignment="bottom")
+with pagination:
+    page = page_for("queue_page", len(queue), 20)
 queue_page = queue.iloc[(page - 1) * 20:page * 20]
-st.caption(t("{shown} of {total} cases displayed", shown=len(queue_page), total=len(queue)))
+with result_count:
+    st.caption(t("{shown} of {total} cases displayed", shown=len(queue_page), total=len(queue)))
+with reset:
+    st.button(t("Clear filters"), key="clear_queue_filters", on_click=reset_queue_filters, width="stretch")
 if queue.empty:
-    st.info(t("No cases match these filters."))
-references = {item["case_id"]: match_reference(item, catalog, catalog_dir / "images") if catalog_dir and not catalog.empty else None for _, item in queue_page.iterrows()}
+    st.info(t("No cases match. Change your search or clear the filters."))
 selected_row = cases.loc[cases["case_id"] == st.session_state.selected_case].iloc[0]
-if selected_row["case_id"] not in references:
-    references[selected_row["case_id"]] = match_reference(selected_row, catalog, catalog_dir / "images") if catalog_dir and not catalog.empty else None
+reference = match_reference(selected_row, catalog, catalog_dir / "images") if catalog_dir and not catalog.empty else None
 
-left, right = st.columns([1, 2.9], gap="large")
+left, right = st.columns([1.15, 2.85], gap="large")
 with left:
     st.markdown(f'<div class="eyebrow">{t("01 / Triage")}</div>', unsafe_allow_html=True)
     st.subheader(t("Case queue"))
-    st.caption(t("Reference images only"))
-    for _, item in queue_page.iterrows():
-        thumb, description = st.columns([1, 3.2], gap="small", vertical_alignment="center")
-        with thumb:
-            thumbnail = image_bytes(references[item["case_id"]], 96, 96)
-            if thumbnail:
-                st.image(thumbnail, width='stretch', caption=None, output_format="PNG")
-            else:
-                st.markdown(f'<div class="thumb-placeholder">{t("No image")}</div>', unsafe_allow_html=True)
-        with description:
+    st.caption(t("Choose a case. Review details appear beside the queue."))
+    with st.container(height=620, border=False, key="case_list"):
+        for _, item in queue_page.iterrows():
             is_selected = item["case_id"] == st.session_state.selected_case
             if st.button(f"{item['case_id']} · {shown(item.get('category')).title()}", key=f"select_{item['case_id']}", width='stretch', type="primary" if is_selected else "secondary"):
                 st.session_state.selected_case = item["case_id"]
                 st.rerun()
             st.caption(f"{t('Priority')}: {t(item['priority'])} · {t(item['status'])}")
+            st.divider()
 
 with right:
     row = cases.loc[cases["case_id"] == st.session_state.selected_case].iloc[0]
@@ -420,9 +475,14 @@ with right:
     signals, missing = indicators(row)
     recommendation = recommended(row, missing)
     st.markdown(f'<div class="eyebrow">{t("02 / Case review")}</div>', unsafe_allow_html=True)
-    picture, review = st.columns([1, 1.12], gap="large")
-    with picture:
-        reference = references[row["case_id"]]
+    st.subheader(f"{row['case_id']} · {shown(row.get('category')).title()}")
+    status = st.session_state.decisions.get(row["case_id"], "Not reviewed")
+    st.caption(t("Review status: {status}", status=t(status)))
+    display_score = score_text(row["score"]).replace("<", "&lt;").replace(">", "&gt;")
+    st.markdown(f'<div class="case-summary"><div><div class="subtle">{t("Suggested next step")}</div><div class="recommendation">{t(recommendation)}</div></div><div class="score-detail"><div class="subtle">{t(score_name)}</div><div class="screening-score">{display_score}</div></div></div>', unsafe_allow_html=True)
+    st.caption(t("The score prioritizes review. It does not establish infringement."))
+    picture, review = st.columns([.85, 1.5], gap="large")
+    with picture, st.container(key="case_reference"):
         image = image_bytes(reference, 880, 780)
         if image:
             st.image(image, width='stretch', output_format="PNG")
@@ -433,13 +493,7 @@ with right:
             st.markdown(f'<div class="reference-placeholder">{t("No compatible reference image")}</div>', unsafe_allow_html=True)
             st.caption(t("Reference only, not the actual listing or evidence of authenticity."))
     with review:
-        st.caption(t("Selected case"))
-        st.subheader(f"{row['case_id']} · {shown(row.get('category')).title()}")
-        st.caption(t("Review status: {status}", status=t(st.session_state.decisions.get(row['case_id'], 'Not reviewed'))))
-        st.caption(f"{t('Brand')}: {shown(row.get('brand'))} · {t('Seller')}: {shown(row.get('seller_id'))} · {t('Price')}: {shown(row.get('price'))}")
-        display_score = score_text(row["score"]).replace("<", "&lt;").replace(">", "&gt;")
-        st.markdown(f'<div class="case-summary"><div class="eyebrow">{t("ML screening result") if model is not None else t(score_name)}</div><div class="big-score">{display_score}</div><div class="subtle">{t("Recommendation")}: <strong>{t(recommendation)}</strong></div></div>', unsafe_allow_html=True)
-        st.caption(t(score_name))
+        st.caption(f"{t('Brand')}: {shown(row.get('brand'))} · {t('Seller')}: {shown(row.get('seller_id'))}")
         st.markdown(f'**{t("Observable record checks")}**')
         st.markdown("\n".join(f"- {translate_indicator(st.session_state.language, item)}" for item in (signals or ["No listed indicator triggered."])[:3]))
         if len(signals) > 3:
@@ -455,20 +509,23 @@ with right:
             st.write(f"{t('Price')}: {shown(row.get('price'))}")
             st.write(f"{t('Seller rating')}: {shown(row.get('seller_rating'))}")
             st.write(f"{t('Seller reviews')}: {shown(row.get('seller_reviews'))}")
-    st.markdown(f'<div class="eyebrow">{t("03 / Human decision")}</div>', unsafe_allow_html=True)
-    st.subheader(t("Review decision"))
-    st.caption(t("Choose a decision; the recommendation is not applied automatically."))
-    buttons = st.columns(3)
-    primary = {"Investigate": "Investigate", "Insufficient information": "Information requested", "Lower review priority": "Dismissed"}[recommendation]
-    for col, action, status in zip(buttons, ["Mark for investigation", "Request more information", "Dismiss from current review queue"], ["Investigate", "Information requested", "Dismissed"]):
-        if col.button(t(action), key=f"action_{status}", width='stretch', type="primary" if status == primary else "secondary"):
-            st.session_state.decisions[row["case_id"]] = status
-            st.session_state.log.append({"timestamp_utc": datetime.now(timezone.utc).isoformat(), "case_id": row["case_id"], "source_product_id": label(row.get("product_id"), "Unavailable"), "source": source, "score_type": score_name, "score": float(row["score"]), "suggested_next_step": recommendation, "human_decision": status})
-            st.rerun()
-    log_columns = ["timestamp_utc", "case_id", "source_product_id", "source", "score_type", "score", "suggested_next_step", "human_decision"]
-    log = pd.DataFrame(st.session_state.log, columns=log_columns)
-    st.download_button(t("Download review log CSV"), log.to_csv(index=False).encode("utf-8"), "review_log.csv", "text/csv", width='stretch', key="download_log")
-    st.caption(t("Decisions stay in this browser session. No complaints, seller contact, or takedowns are initiated."))
+    with st.container(key="decision_panel"):
+        st.markdown(f'<div class="eyebrow">{t("03 / Human decision")}</div>', unsafe_allow_html=True)
+        st.subheader(t("Review decision"))
+        st.caption(t("Choose a decision; the recommendation is not applied automatically."))
+        buttons = st.columns(3)
+        primary = {"Investigate": "Investigate", "Insufficient information": "Information requested", "Lower review priority": "Dismissed"}[recommendation]
+        for col, action, status in zip(buttons, ["Mark for investigation", "Request more information", "Dismiss from review"], ["Investigate", "Information requested", "Dismissed"]):
+            if col.button(t(action), key=f"action_{status}", width='stretch', type="primary" if status == primary else "secondary"):
+                st.session_state.decisions[row["case_id"]] = status
+                st.session_state.log.append({"timestamp_utc": datetime.now(timezone.utc).isoformat(), "case_id": row["case_id"], "source_product_id": label(row.get("product_id"), "Unavailable"), "source": source, "score_type": score_name, "score": float(row["score"]), "suggested_next_step": recommendation, "human_decision": status})
+                st.rerun()
+        if row["case_id"] in st.session_state.decisions:
+            st.success(t("Decision recorded: {status}. Choose another action to change it.", status=t(st.session_state.decisions[row["case_id"]])))
+        log_columns = ["timestamp_utc", "case_id", "source_product_id", "source", "score_type", "score", "suggested_next_step", "human_decision"]
+        log = pd.DataFrame(st.session_state.log, columns=log_columns)
+        st.download_button(t("Download review log CSV"), log.to_csv(index=False).encode("utf-8"), "review_log.csv", "text/csv", width='stretch', key="download_log", disabled=log.empty)
+        st.caption(t("Decisions stay in this browser session. No complaints, seller contact, or takedowns are initiated."))
 
 with st.expander(t("Model & data details")):
     st.caption(t("{source} · Case IDs and review statuses are synthetic workflow fields. Prices have no verified currency in the dataset.", source=display_source))

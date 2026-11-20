@@ -3,6 +3,14 @@
 import re
 
 KO = {
+    "Search cases": "사례 검색",
+    "Case ID, brand or seller": "사례 ID, 브랜드 또는 판매자",
+    "Clear filters": "필터 초기화",
+    "No cases match. Change your search or clear the filters.": "조건에 맞는 사례가 없습니다. 검색어를 바꾸거나 필터를 초기화하세요.",
+    "Choose a case. Review details appear beside the queue.": "사례를 선택하면 상세 검토 화면이 표시됩니다.",
+    "{count} cases reviewed in this session": "현재 세션에서 {count}건 검토",
+    "The score prioritizes review. It does not establish infringement.": "이 점수는 검토 순서를 정하기 위한 값이며 침해 여부를 입증하지 않습니다.",
+    "Decision recorded: {status}. Choose another action to change it.": "검토 결과를 기록했습니다: {status}. 다른 조치를 선택하면 변경할 수 있습니다.",
     "Investigation queue": "의심 사례 검토",
     "Product catalog": "상품 카탈로그",
     "Separate fashion catalog": "별도의 패션 상품 카탈로그",
@@ -116,7 +124,7 @@ KO = {
     "Current status: {status}": "현재 상태: {status}",
     "Mark for investigation": "추가 조사 대상으로 지정",
     "Request more information": "추가 정보 요청",
-    "Dismiss from current review queue": "검토 대상에서 제외",
+    "Dismiss from review": "검토 대상에서 제외",
     "Download review log CSV": "검토 기록 CSV 다운로드",
     "Decisions stay in this browser session. No complaints, seller contact, or takedowns are initiated.": "검토 결과는 현재 브라우저 세션에만 저장됩니다. 신고, 판매자 연락 또는 게시 중단 조치는 실행되지 않습니다.",
     "Dataset quality and model evaluation": "데이터 품질 및 모델 평가",

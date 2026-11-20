@@ -21,6 +21,16 @@ Use the **Language / 언어** selector at the top right to switch between Englis
 
 The application text is localized, but Streamlit supplies its own interface controls. Some framework-provided accessibility labels, table toolbar tooltips, and the application menu remain in English in Korean mode. The upload control's visible Korean label is styled for the installed Streamlit version; its screen-reader labels may still be English.
 
+### Analyst workspace
+
+The interface uses a light blue-gray workspace with navy actions, system fonts, and visible keyboard focus. `.streamlit/config.toml` sets a consistent default theme for native controls; the Vercel Docker image includes this configuration.
+
+Search the queue by case ID, brand, or seller. Search is literal and case-insensitive, combines with the filters, and returns to page 1 when changed. **Clear filters** clears the search and all three filters. The queue scrolls independently of the selected case; on small screens it has a shorter viewport above the review. The catalog gallery also scrolls independently of its product details.
+
+The selected case shows the recommended next step before the experimental score. Reference images remain explicitly separate from evidence. After a decision, the app displays the recorded status and enables CSV export. Choosing another action changes the current status and adds another log event; it does not contact sellers or initiate enforcement.
+
+Design and copy guidance used: [Unslop](https://skills.sh/cursor/plugins/unslop), [Frontend Design](https://skills.sh/anthropics/skills/frontend-design), and [Web Design Guidelines](https://skills.sh/vercel-labs/agent-skills/web-design-guidelines). These are authoring tools, not runtime dependencies.
+
 The Kaggle data card describes the dataset itself as **synthetic**. Its listing attributes, brands, sellers and labels do not constitute real marketplace evidence. The local CSV was present in the provided workspace and its filename and structure match the requested dataset; its download provenance has not been independently verified. The data card lists [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Check the source and license terms before redistributing or reusing the data. Uploads have unverified provenance.
 
 ## High-resolution catalog and reference images

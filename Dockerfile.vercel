@@ -7,6 +7,7 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py image_catalog.py translations.py ./
+COPY .streamlit/config.toml ./.streamlit/config.toml
 COPY archive/counterfeit_products.csv ./archive/counterfeit_products.csv
 COPY fashion-dataset/styles.csv ./fashion-dataset/styles.csv
 COPY fashion-dataset/images/ ./fashion-dataset/images/

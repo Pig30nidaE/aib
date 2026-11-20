@@ -14,6 +14,33 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class LocalizationTests(unittest.TestCase):
+    def test_case_search_and_filter_reset_across_languages(self):
+        app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
+        selected = app.session_state["selected_case"]
+        app.number_input(key="queue_page_widget").set_value(2).run()
+        app.text_input(key="case_search").input(selected.lower()).run()
+        self.assertFalse(app.exception)
+        self.assertEqual(app.session_state["queue_page"], 1)
+        self.assertEqual(
+            [button.key for button in app.button if button.key and button.key.startswith("select_")],
+            [f"select_{selected}"],
+        )
+        app.selectbox(key="language").set_value("ko").run()
+        self.assertEqual(app.text_input(key="case_search").value, selected.lower())
+        app.button(key="nav_catalog").click().run()
+        app.button(key="nav_queue").click().run()
+        self.assertEqual(app.text_input(key="case_search").value, selected.lower())
+        app.text_input(key="case_search").input("no-such-case-[]").run()
+        self.assertFalse(any(button.key and button.key.startswith("select_") for button in app.button))
+        self.assertEqual(app.session_state["selected_case"], selected)
+        app.button(key="clear_queue_filters").click().run()
+        self.assertFalse(app.exception)
+        self.assertEqual(app.text_input(key="case_search").value, "")
+        self.assertEqual(app.selectbox(key="category_filter_ko").value, "All categories")
+        app.selectbox(key="language").set_value("en").run()
+        self.assertEqual(app.selectbox(key="category_filter_en").value, "All categories")
+        self.assertEqual(app.session_state["selected_case"], selected)
+
     def test_catalog_search_and_pagination(self):
         if not (ROOT / "fashion-dataset" / "styles.csv").exists():
             self.skipTest("Download the high-resolution fashion dataset to test catalog browsing")
